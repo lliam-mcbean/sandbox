@@ -1,32 +1,34 @@
-import { Canvas } from '@react-three/fiber'
-import { Physics, usePlane, useBox } from '@react-three/cannon'
+import { Canvas, extend } from '@react-three/fiber'
+import { shaderMaterial } from '@react-three/drei'
+import glsl from 'babel-plugin-glsl/macro'
 
-function Plane(props) {
-  const [ref] = usePlane(() => ({ rotation: [-Math.PI / 2, 0, 0], ...props }))
-  return (
-    <mesh ref={ref}>
-      <planeGeometry args={[100, 100]} />
-    </mesh>
-  )
-}
+const WaveShaderMaterial = new shaderMaterial(
+  {},
+  // vertex shader
+  glsl`
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  // fragment shader
+  glsl`
+    void main() {
+      gl_FragColor = vec4(0.0, 1.0, 1.0, 1.0);
+    }
+  `
+)
 
-function Cube(props) {
-  const [ref] = useBox(() => ({ mass: 1, position: [0, 5, 0], ...props }))
-  return (
-    <mesh ref={ref}>
-      <boxGeometry />
-    </mesh>
-  )
-}
+extend({WaveShaderMaterial})
 
 function App() {
   return (
     <div style={{height: '100vh', width: '100vw'}}>
         <Canvas>
-          <Physics>
-            <Plane />
-            <Cube />
-          </Physics>
+          <pointLight position={[10,10,10]} />
+          <mesh>
+            <planeBufferGeometry args={[3,5]} />
+            <waveShaderMaterial />
+          </mesh>
         </Canvas>
       </div>
   );
