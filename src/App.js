@@ -4,42 +4,71 @@ import { shaderMaterial, OrbitControls } from '@react-three/drei'
 import glsl from 'babel-plugin-glsl/macro'
 
 const WaveShaderMaterial = new shaderMaterial(
-  {time: 0},
+  {time: 0,
+  sinTime: 0,
+  cosTime: 0},
   // vertex shader
-  // plane to sphere 
+  // plane to sphere
   glsl`
     uniform float time;
-    
+
     varying vec2 vUv;
 
+    #define PI 3.14159265359
+
     void main() {
-      float lat = ((uv.x) * 2.0) * (3.14 / 180.0);
-      float longi = ((uv.y - 0.5)) * (3.14 / 180.0);
+      vUv = uv;
 
-      float z = cos(lat + time) * cos(longi + time) * 3.0;
-      float x = cos(lat + time) * sin(longi + time) * 3.0;
-      float y = sin(lat + time) * 3.0;
+      float phi = (1. - uv.y) * PI;
+      float theta = uv.x * PI * 2. + PI;
+      float radius = 1.;
 
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(x,y,z, 0.5);
+      float sinPhiRadius = sin( phi ) * radius;
+
+      float x = sinPhiRadius * sin( theta );
+      float y = cos( phi ) * radius;
+      float z = sinPhiRadius * cos( theta );
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(mix(position, vec3(x,y,z), 1.), 1.0);
     }
-  `
+  `,
+  // cube to sphere 
   // glsl`
-   
-  //   attribute vec3 CubeCoord;
+  //   uniform float cosTime;
+  //   uniform float sinTime;
+  //   varying vec2 vUv;
+  //   varying vec3 posTime;
 
   //   void main() {
-  //       vec3 sphereCoord = normalize(CubeCoord);
-  //       gl_Position = vec4(mix(CubeCoord, sphereCoord, 0.0), 1.0);
+  //     vUv = uv;
+      
+  //     vec3 spherePos = normalize(position) * sinTime;
+  //     vec3 cubePos = position * cosTime;
+  //     posTime = spherePos + cubePos;
+
+  //     gl_Position = projectionMatrix * modelViewMatrix * vec4(posTime, 1.0);
   //   }
   // `,
   // fragment shader
   glsl`
-    uniform float time;
-
     varying vec2 vUv;
 
-    void  main() {
-      gl_FragColor = vec4(0.0,1.0,1.0, 1.0);
+    #define PI 3.14159265359
+
+    void main()
+    {
+        vec2 st = vUv;
+        //Re-map vUv, so its 0 at the center and 1 or -1 on the edges
+        st = st * 2. -1.;
+
+        float d = length( abs(st) - 0.5 );
+        //Same d:
+        // d = distance( abs(st) - 0.5, vec2(0.0) );
+
+        //returns the fractional part of x. This is calculated as x - floor(x)
+        float dField = fract(d*10.0);
+
+        gl_FragColor = vec4(vUv, 1.0, 1.0);
     }
   `,
 )
@@ -52,11 +81,13 @@ function Shader() {
 
   useFrame(({clock}) => {
     ref.current.time = clock.getElapsedTime()
+    ref.current.cosTime = Math.abs(Math.cos(clock.getElapsedTime()))
+    ref.current.sinTime = Math.abs(Math.sin(clock.getElapsedTime()))
   })
 
   return (
     <mesh>
-      <boxGeometry args={[1,1,100]} />
+      <planeGeometry args={[1,1,100]} />
       <waveShaderMaterial ref={ref} wireframe={true}/>
     </mesh>
   )
