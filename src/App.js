@@ -8,30 +8,44 @@ const WaveShaderMaterial = new shaderMaterial(
   sinTime: 0,
   cosTime: 0},
   // vertex shader
-  // plane to sphere
+  // waves on a plane
   glsl`
-    uniform float time;
+  varying vec2 vUv;
 
-    varying vec2 vUv;
+  uniform float sinTime;
+  uniform float time;
 
-    #define PI 3.14159265359
-
-    void main() {
-      vUv = uv;
-
-      float phi = (1. - uv.y) * PI;
-      float theta = uv.x * PI * 2. + PI;
-      float radius = 1.;
-
-      float sinPhiRadius = sin( phi ) * radius;
-
-      float x = sinPhiRadius * sin( theta );
-      float y = cos( phi ) * radius;
-      float z = sinPhiRadius * cos( theta );
-
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(mix(position, vec3(x,y,z), 1.), 1.0);
-    }
+  void main() {
+    vUv = uv;
+    float waveX = sin(uv.y * 500.0 + time) * 0.01;
+    float waveY = sin(uv.x * 500.0 + time) * 0.01;
+    
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y, mix(waveX, waveY, 0.5), 1.0);
+  }
   `,
+  // plane to sphere
+  // glsl`
+  //   uniform float time;
+  //   uniform float sinTime;
+  //   uniform float cosTime;
+
+  //   varying vec2 vUv;
+
+  //   #define PI 3.14159265359
+
+  //   void main() {
+  //     vUv = uv;
+      
+  //     float lat = (uv.x - 0.5) * 2.0 * PI;
+  //     float lon = (uv.y - 0.5) * PI;
+
+  //     float x = cos(lat) * cos(lon) * 0.5;
+  //     float y = sin(lat) * 0.5;
+  //     float z = cos(lat) * sin(lon) * 0.5;
+
+  //     gl_Position = projectionMatrix * modelViewMatrix * vec4(mix(position, vec3(x,y,z), cosTime), 1.0);
+  //   }
+  // `,
   // cube to sphere 
   // glsl`
   //   uniform float cosTime;
@@ -42,7 +56,7 @@ const WaveShaderMaterial = new shaderMaterial(
   //   void main() {
   //     vUv = uv;
       
-  //     vec3 spherePos = normalize(position) * sinTime;
+  //     vec3 spherePos = normalize(position) * 2.0 * sinTime;
   //     vec3 cubePos = position * cosTime;
   //     posTime = spherePos + cubePos;
 
@@ -52,23 +66,14 @@ const WaveShaderMaterial = new shaderMaterial(
   // fragment shader
   glsl`
     varying vec2 vUv;
-
     #define PI 3.14159265359
-
     void main()
     {
         vec2 st = vUv;
-        //Re-map vUv, so its 0 at the center and 1 or -1 on the edges
         st = st * 2. -1.;
-
         float d = length( abs(st) - 0.5 );
-        //Same d:
-        // d = distance( abs(st) - 0.5, vec2(0.0) );
-
-        //returns the fractional part of x. This is calculated as x - floor(x)
         float dField = fract(d*10.0);
-
-        gl_FragColor = vec4(vUv, 1.0, 1.0);
+        gl_FragColor = vec4(0.0,0.0, dField, 1.0);
     }
   `,
 )
@@ -81,13 +86,13 @@ function Shader() {
 
   useFrame(({clock}) => {
     ref.current.time = clock.getElapsedTime()
-    ref.current.cosTime = Math.abs(Math.cos(clock.getElapsedTime()))
-    ref.current.sinTime = Math.abs(Math.sin(clock.getElapsedTime()))
+    ref.current.cosTime = Math.abs(Math.cos(clock.getElapsedTime() / 5))
+    ref.current.sinTime = Math.abs(Math.sin(clock.getElapsedTime() / 5))
   })
 
   return (
     <mesh>
-      <planeGeometry args={[1,1,100]} />
+      <planeGeometry args={[1,1,500,500]} />
       <waveShaderMaterial ref={ref} wireframe={true}/>
     </mesh>
   )
