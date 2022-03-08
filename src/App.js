@@ -9,43 +9,43 @@ const WaveShaderMaterial = new shaderMaterial(
   cosTime: 0},
   // vertex shader
   // waves on a plane
-  glsl`
-  varying vec2 vUv;
-
-  uniform float sinTime;
-  uniform float time;
-
-  void main() {
-    vUv = uv;
-    float waveX = sin(uv.y * 500.0 + time) * 0.01;
-    float waveY = sin(uv.x * 500.0 + time) * 0.01;
-    
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y, mix(waveX, waveY, 0.5), 1.0);
-  }
-  `,
-  // plane to sphere
   // glsl`
-  //   uniform float time;
-  //   uniform float sinTime;
-  //   uniform float cosTime;
+  // varying vec2 vUv;
 
-  //   varying vec2 vUv;
+  // uniform float sinTime;
+  // uniform float time;
 
-  //   #define PI 3.14159265359
-
-  //   void main() {
-  //     vUv = uv;
-      
-  //     float lat = (uv.x - 0.5) * 2.0 * PI;
-  //     float lon = (uv.y - 0.5) * PI;
-
-  //     float x = cos(lat) * cos(lon) * 0.5;
-  //     float y = sin(lat) * 0.5;
-  //     float z = cos(lat) * sin(lon) * 0.5;
-
-  //     gl_Position = projectionMatrix * modelViewMatrix * vec4(mix(position, vec3(x,y,z), cosTime), 1.0);
-  //   }
+  // void main() {
+  //   vUv = uv;
+  //   float waveX = sin(uv.y * 500.0 + time) * 0.01;
+  //   float waveY = sin(uv.x * 500.0 + time) * 0.01;
+    
+  //   gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y, mix(waveX, waveY, 0.5), 1.0);
+  // }
   // `,
+  // plane to sphere
+  glsl`
+    uniform float time;
+    uniform float sinTime;
+    uniform float cosTime;
+
+    varying vec2 vUv;
+
+    #define PI 3.14159265359
+
+    void main() {
+      vUv = uv;
+      
+      float lat = (uv.x - 0.5) * 2.0 * PI;
+      float lon = (uv.y - 0.5) * PI;
+
+      float x = cos(lat) * cos(lon) * 0.5;
+      float y = sin(lat) * 0.5;
+      float z = cos(lat) * sin(lon) * 0.5;
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(mix(position, vec3(x,y,z), cosTime), 1.0);
+    }
+  `,
   // cube to sphere 
   // glsl`
   //   uniform float cosTime;
