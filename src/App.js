@@ -43,7 +43,15 @@ const WaveShaderMaterial = new shaderMaterial(
       float y = sin(lat) * 0.5;
       float z = cos(lat) * sin(lon) * 0.5;
 
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(mix(position, vec3(x,y,z), cosTime), 1.0);
+      float r = sqrt(x*x + y*y + z*z )
+      float theta = atan2(sqrt(x*x + y*y) , z)
+      float phi = atan2(y,x)
+
+      float newx = r^n * sin(theta*n) * cos(phi*n)
+      float newy = r^n * sin(theta*n) * sin(phi*n)
+      float newz = r^n * cos(theta*n)
+
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(mix(position, vec3(newx,newy,newz), cosTime), 1.0);
     }
   `,
   // cube to sphere 
@@ -92,7 +100,7 @@ function Shader() {
 
   return (
     <mesh>
-      <planeGeometry args={[1,1,500,500]} />
+      <planeGeometry args={[1,1,10,10]} />
       <waveShaderMaterial ref={ref} wireframe={true}/>
     </mesh>
   )
