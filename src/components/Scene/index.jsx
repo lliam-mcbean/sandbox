@@ -6,20 +6,21 @@ import Lights from './Lights'
 import Plane from './Plane'
 import Sphere from './Sphere'
 import Bubble from './Bubble'
+import { OrbitControls } from '@react-three/drei'
 
 export default function Scene() {
-    let bubbles = []
-    for (let i = 0; i < 10; i++) {
-        bubbles.push(<Bubble />)
-    }
+    // let bubbles = []
+    // for (let i = 0; i < 10; i++) {
+    //     bubbles.push(<Bubble />)
+    // }
   return (
-    <Canvas shadows camera={{position: [0,50,20]}}>
+    <Canvas shadows camera={{position: [0,50,20], far: 1000}}>
         <Lights />
-        <Physics gravity={[0,-100,0]}>
+        <Physics>
             <Plane />
             <Sphere />
-            {bubbles}
         </Physics>
+        <OrbitControls />
     </Canvas>
   )
 }

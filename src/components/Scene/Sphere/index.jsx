@@ -1,25 +1,39 @@
 import { useSphere } from '@react-three/cannon'
 import { useFrame } from '@react-three/fiber'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { Vector3 } from 'three'
 import useCamera from '../../../hooks/useCamera'
 
 
-export default function Sphere(props) {
-  const [ref, api] = useSphere(() => ({ args: [5,10,10], mass: 1000, position: [0, 15, 0], material: { friction: 0, restitution: 0}, ...props }))
+export default function Sphere({vec = new Vector3()}) {
+  const [ref, api] = useSphere(() => ({ args: [5,10,10], mass: 10, position: [0, 10, 0], material: { friction: 0, restitution: 0}}))
+  const force = useRef([0,0,0])
+  const position = useRef([0,0,0])
 
-  const {cameraPosition} = useCamera()
+  useEffect(() => {
+    document.addEventListener('keydown', (e) => {
+      if (position.current[1] < 5 && e.code === 'Space') {
+        api.applyLocalImpulse([0,500,0], [0,0,0])
+      }
+    })
+    return () => {
+      document.removeEventListener('keydown')
+    }
+  }, [])
 
   useEffect(() => {
     api.position.subscribe((e) => {
-      cameraPosition.current = [e[0], e[1] + 75, e[2] + 15]
+      position.current = e
     })
-
   }, [api])
 
-  useFrame(({camera}) => {
-    camera.position.x = cameraPosition.current[0]
-    camera.position.y = cameraPosition.current[1] 
-    camera.position.z = cameraPosition.current[2] 
+  useFrame(({mouse, camera}) => {
+    console.log(position.current[1])
+    force.current = [(mouse.x * 300), (position.current[1] - 5) * -70, (-mouse.y * 300)]
+    // FOLLOW CAM
+    //camera.position.set(position.current[0] - 20, position.current[1] + 50, position.current[2] + 20)
+    api.applyLocalForce(force.current, [0,0,0])
+    // api.applyLocalForce(vec.multiplyScalar(-1).toArray(), [0,0,0])
   })
   
   return (

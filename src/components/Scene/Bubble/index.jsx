@@ -10,9 +10,7 @@ export default function Bubble({vec = new THREE.Vector3()}) {
         args: [1,10,10],
         mass: 10,
         position: [0,10,0],
-        material: {
-            restitution: 1
-        }
+
     }))
 
     
